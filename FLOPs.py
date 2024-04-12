@@ -7,7 +7,7 @@ from CTCSN import CTCSN
 
 device = torch.device('cuda:0')
 print('==> Building model..')
-model = CTCSN(snr=0, cr=1, bit_num=10).to(device)
+model = CTCSN(snr=0, cr=1).to(device)
 
 dummy_input = torch.randn(1, 172, 256, 4).to(device)
 output, _ = model(dummy_input)
