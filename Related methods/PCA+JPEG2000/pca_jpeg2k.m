@@ -2,65 +2,65 @@ load California_41;
 inputImage = Xim;
 start_time = tic;
 
-BIT_DEPTH = 8;
+BIT_DEPTH = 16;
 NUM_TONES = 2^BIT_DEPTH - 1;
 FLOATING_POINT_REPRESENTATION = 'single';
-IMAGE_INTEGER_REPRESENTATION = 'uint8';
+IMAGE_INTEGER_REPRESENTATION = 'uint16';
 
 originalImage = single(inputImage);
 normalizedImage = originalImage / NUM_TONES;
 
-% ½«ÈıÎ¬Êı×é×ª»»Îª¶şÎ¬Êı×é
+% å°†ä¸‰ç»´æ•°ç»„è½¬æ¢ä¸ºäºŒç»´æ•°ç»„
 [num_pixels, num_bands] = size(normalizedImage);
 normalizedImage = reshape(normalizedImage, num_pixels, num_bands);
 
-% ÉèÖÃ¿éµÄ´óĞ¡
+% è®¾ç½®å—çš„å¤§å°
 block_size = 256;
 
-% »ñÈ¡¿éµÄÊıÁ¿
+% è·å–å—çš„æ•°é‡
 num_blocks = num_pixels / block_size;
 
-% ³õÊ¼»¯½á¹ûÊı×é
+% åˆå§‹åŒ–ç»“æœæ•°ç»„
 reconstructedImage_blocks = zeros(size(normalizedImage), 'single');
 
-% PCAºÍMinMaxScaler³õÊ¼»¯
+% PCAå’ŒMinMaxScaleråˆå§‹åŒ–
 pca = pcares(normalizedImage, 1);
 mms = MinMaxScaler('feature_range', [0, NUM_TONES]);
 
 reducedImage = pca.transform(normalizedImage);
 explained_variance_ratio = pca.MS.explained_variance_ratio;
-disp(['½âÊÍ·½²î±ÈÀı: ', num2str(explained_variance_ratio)])
+disp(['è§£é‡Šæ–¹å·®æ¯”ä¾‹: ', num2str(explained_variance_ratio)])
 
-% ·Ö¿é´¦Àí
+% åˆ†å—å¤„ç†
 for i = 1:num_blocks
     start_idx = (i - 1) * block_size + 1;
     end_idx = i * block_size;
     block_data = normalizedImage(start_idx:end_idx, :);
 
-    % Ñ¹Ëõ
+    % å‹ç¼©
     reducedImage_block = pca.transform(block_data);
     JPEG2000Encoding_block = imencode('.jpg', mms.fit_transform(reducedImage_block), 'jpg');
 
-    % ½âÑ¹Ëõ
+    % è§£å‹ç¼©
     JPEG2000Decoding_block = mms.inverse_transform(imdecode(JPEG2000Encoding_block, 'jpg'));
     reconstructedImage_block = pca.inverse_transform(JPEG2000Decoding_block) * NUM_TONES;
 
-    % ½«¿éµÄ½á¹û´æ´¢µ½½á¹ûÊı×éÖĞ
+    % å°†å—çš„ç»“æœå­˜å‚¨åˆ°ç»“æœæ•°ç»„ä¸­
     reconstructedImage_blocks(start_idx:end_idx, :) = reconstructedImage_block;
 end
 
-% ½«½á¹ûÊı×é»¹Ô­»ØÔ­Ê¼ĞÎ×´
+% å°†ç»“æœæ•°ç»„è¿˜åŸå›åŸå§‹å½¢çŠ¶
 reconstructedImage = reshape(reconstructedImage_blocks, size(normalizedImage));
 
-% ½«¶şÎ¬Êı×é»¹Ô­ÎªÈıÎ¬Êı×é
+% å°†äºŒç»´æ•°ç»„è¿˜åŸä¸ºä¸‰ç»´æ•°ç»„
 restoredImage = reshape(reconstructedImage, size(originalImage));
 end_time = toc(start_time);
 
-% ¼ÙÉè `reconstructedImage` ÊÇ½âÑ¹ËõºóµÄÊı¾İ
+% å‡è®¾ `reconstructedImage` æ˜¯è§£å‹ç¼©åçš„æ•°æ®
 data_to_save = struct('pca_jpeg2k', restoredImage);
 save('REC/pca+jpeg2000(U).mat', '-struct', 'data_to_save');
 
-% ¼ÆËãÖ¸±ê
+% è®¡ç®—æŒ‡æ ‡
 sam_value = sam(restoredImage, originalImage);
 rmse_value = rmse(restoredImage, originalImage);
 psnr_value = psnr(restoredImage, originalImage);
@@ -69,16 +69,16 @@ total_time = end_time;
 disp(['SAM: ', num2str(sam_value)]);
 disp(['RMSE: ', num2str(rmse_value)]);
 disp(['PSNR: ', num2str(psnr_value)]);
-disp(['×ÜÖ´ĞĞÊ±¼ä: ', num2str(total_time), ' Ãë']);
+disp(['æ€»æ‰§è¡Œæ—¶é—´: ', num2str(total_time), ' ç§’']);
 
-% ¼ÆËãÑ¹Ëõ±È
-original_size = numel(inputImage) * 4; % ¼ÙÉèÊ¹ÓÃµ¥¾«¶È¸¡µãÊı£¨4×Ö½ÚÃ¿¸öÔªËØ£©
+% è®¡ç®—å‹ç¼©æ¯”
+original_size = numel(inputImage) * 4; % å‡è®¾ä½¿ç”¨å•ç²¾åº¦æµ®ç‚¹æ•°ï¼ˆ4å­—èŠ‚æ¯ä¸ªå…ƒç´ ï¼‰
 compressed_size = sum(cellfun('length', JPEG2000Encoding_block));
 compression_ratio = original_size / compressed_size;
 
-disp(['Ô­Ê¼´óĞ¡£¨×Ö½Ú£©: ', num2str(original_size)]);
-disp(['Ñ¹Ëõºó´óĞ¡£¨×Ö½Ú£©: ', num2str(compressed_size)]);
-disp(['Ñ¹Ëõ±È: ', num2str(compression_ratio)]);
+disp(['åŸå§‹å¤§å°ï¼ˆå­—èŠ‚ï¼‰: ', num2str(original_size)]);
+disp(['å‹ç¼©åå¤§å°ï¼ˆå­—èŠ‚ï¼‰: ', num2str(compressed_size)]);
+disp(['å‹ç¼©æ¯”: ', num2str(compression_ratio)]);
 
 function value = sam(x, y)
     num = sum(x .* y, 3);
