@@ -50,7 +50,7 @@ restoredImage = reconstructedImage.reshape(originalImage.shape)
 
 # Save the restored image to a .mat file
 data_to_save = {'pca_jpeg2k': restoredImage}
-savemat('REC/pca+jpeg2000(MF)2.mat', data_to_save)
+savemat('REC/pca+jpeg2000(MF).mat', data_to_save)
 
 end_time = time.time()
 
