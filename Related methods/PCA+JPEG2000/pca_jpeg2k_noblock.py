@@ -15,7 +15,7 @@ start_time = time.time()
 BIT_DEPTH = 8
 NUM_TONES = float(2**BIT_DEPTH - 1)
 FLOATING_POINT_REPRESENTATION = 'float32'
-IMAGE_INTEGER_REPRESENTATION = 'uint8'
+IMAGE_INTEGER_REPRESENTATION = 'float32'
 
 originalImage = inputImage.astype(FLOATING_POINT_REPRESENTATION)
 normalizedImage = originalImage / NUM_TONES
