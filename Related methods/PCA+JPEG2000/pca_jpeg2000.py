@@ -11,10 +11,10 @@ inputImage = inputData['Xim'][:256, :256, :]
 
 start_time = time.time()
 
-BIT_DEPTH = 16
+BIT_DEPTH = 8
 NUM_TONES = float(2**BIT_DEPTH - 1)
-FLOATING_POINT_REPRESENTATION = 'float64' 
-IMAGE_INTEGER_REPRESENTATION = 'uint16' 
+FLOATING_POINT_REPRESENTATION = 'float32' 
+IMAGE_INTEGER_REPRESENTATION = 'uint8' 
 
 originalImage = inputImage.astype(FLOATING_POINT_REPRESENTATION)
 normalizedImage = originalImage / NUM_TONES  # 归一化到 [0,1] PCA计算
